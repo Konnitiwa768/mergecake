@@ -68,7 +68,7 @@
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         let frames = JSON.parse(localStorage.getItem('frames')) || Array.from({ length: 12 }).map(() => null);
         let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
-        const cakeTextures = ['cookie', 'cookie set', 'cake', ' birthday cake', 'pie', 'pancake'];
+        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake'];
         const cakePower = {
             'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220
         };
@@ -193,28 +193,48 @@
             return `${num.toFixed(2)}${units[unitIndex]}`;
         }
 
-        document.getElementById('buyCake').addEventListener('click', buyCake);
-        document.getElementById('mergeCake').addEventListener('click', () => {
-            const frameIndex1 = parseInt(prompt('マージする ケーキ のフレーム番号を入力してください (例: 0)'));
-            const frameIndex2 = parseInt(prompt('もう一つの ケーキ のフレーム番号を入力してください (例: 1)'));
-            mergeCakes(frameIndex1, frameIndex2);
-        });
-        document.getElementById('deleteCake').addEventListener('click', () => {
-            const frameIndex = parseInt(prompt('削除する ケーキ のフレーム番号を入力してください (例: 0)'));
-            deleteCake(frameIndex);
-        });
-        document.getElementById('resetGame').addEventListener('click', resetGame);
+        function generateCookie() {
+            const emptyFrameIndex = frames.findIndex(frame => frame === null);
+            
+            if (emptyFrameIndex !== -1) {
+                const cookieImage = new Image();
+                cookieImage.src = 'images/cookie.png';
+
+                cookieImage.onload = () => {
+                    frames[emptyFrameIndex] = {
+                        x: 0,
+                        y: 0,
+                        image: cookieImage,
+                        power: cakePower['cookie'],
+                        texture: 'images/cookie.png'
+                    };
+                    
+                    localStorage.setItem('frames', JSON.stringify(frames));
+                    drawFrames();
+                };
+            }
+        }
+
+        setInterval(() => {
+            generateCookie();
+        }, Math.random() * 2000 + 3000); // 3000ms (3秒)から5000ms (5秒)の間でランダムに生成
+
+        setInterval(() => {
+            const cps = calculateCoinsPerSecond();
+            coins += cps;
+            updateCoins();
+            updateCoinsPerSecond();
+        }, 1000); // 毎秒コインを更新
 
         drawFrames();
+        updateShop();
         updateCoins();
         updateCoinsPerSecond();
 
-        setInterval(() => {
-            coins += calculateCoinsPerSecond();
-            updateCoins();
-        }, 1000);
-
-        setInterval(updateCoinsPerSecond, 1000);
+        document.getElementById('buyCake').addEventListener('click', buyCake);
+        document.getElementById('mergeCake').addEventListener('click', () => mergeCakes(0, 1)); // Frame 0と1をマージ
+        document.getElementById('deleteCake').addEventListener('click', () => deleteCake(0)); // Frame 0のケーキを削除
+        document.getElementById('resetGame').addEventListener('click', resetGame);
     </script>
 </body>
 </html>
