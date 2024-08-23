@@ -71,7 +71,7 @@
         let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
         const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit'];
         const cakePower = {
-            'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220, 'pancake pro': 468, 'biscuit': 994, 'pancake': 2048
+            'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220, 'pancake pro': 468, 'biscuit': 994, 'chocobiscuit': 2048
         };
         const cakeSize = 60;
         let selectedFrame = null;
@@ -206,7 +206,7 @@
                         x: 0,
                         y: 0,
                         texture: 'images/cookie.png',
-                        power: cakePower['cookie']
+                        power: 1
                     };
                     
                     localStorage.setItem('frames', JSON.stringify(frames));
@@ -231,11 +231,19 @@
         document.getElementById('mergeCake').addEventListener('click', () => {
             const frameIndex1 = parseInt(prompt('マージするケーキのフレーム番号を入力してください (例: 0)'));
             const frameIndex2 = parseInt(prompt('もう一つのケーキのフレーム番号を入力してください (例: 1)'));
-            mergeCakes(frameIndex1, frameIndex2);
+            if (!isNaN(frameIndex1) && !isNaN(frameIndex2)) {
+                mergeCakes(frameIndex1, frameIndex2);
+            } else {
+                alert('無効なフレーム番号です');
+            }
         });
         document.getElementById('deleteCake').addEventListener('click', () => {
             const frameIndex = parseInt(prompt('削除するケーキのフレーム番号を入力してください (例: 0)'));
-            deleteCake(frameIndex);
+            if (!isNaN(frameIndex)) {
+                deleteCake(frameIndex);
+            } else {
+                alert('無効なフレーム番号です');
+            }
         });
         document.getElementById('resetGame').addEventListener('click', resetGame);
 
