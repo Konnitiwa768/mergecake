@@ -69,9 +69,9 @@
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         let frames = JSON.parse(localStorage.getItem('frames')) || Array.from({ length: 12 }).map(() => null);
         let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
-        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake'];
+        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit'];
         const cakePower = {
-            'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220
+            'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220, 'pancake pro': 468, 'biscuit': 994, 'pancake': 2048
         };
         const cakeSize = 60;
         let selectedFrame = null;
