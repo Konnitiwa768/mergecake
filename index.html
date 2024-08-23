@@ -26,6 +26,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
+            cursor: pointer;
         }
         .frame img { max-width: 100%; max-height: 100%; }
         button { margin: 5px; }
@@ -36,8 +37,6 @@
     <div id="shop">
         <h3>Shop</h3>
         <button id="buyCake">ケーキを購入（価格: <span id="price">100</span> コイン）</button>
-        <button id="mergeCake">マージ</button>
-        <button id="deleteCake">ケーキ削除</button>
         <button id="resetGame">リセット</button>
         <div id="coins">コイン: 0</div>
         <div id="coinsPerSecond">1秒ごとに: 0 コイン</div>
@@ -45,18 +44,18 @@
     </div>
     <div id="frames">
         <!-- 12個の枠をHTML内で静的に定義 -->
-        <div class="frame" id="frame0" onclick="showCakeInfo(0)"></div>
-        <div class="frame" id="frame1" onclick="showCakeInfo(1)"></div>
-        <div class="frame" id="frame2" onclick="showCakeInfo(2)"></div>
-        <div class="frame" id="frame3" onclick="showCakeInfo(3)"></div>
-        <div class="frame" id="frame4" onclick="showCakeInfo(4)"></div>
-        <div class="frame" id="frame5" onclick="showCakeInfo(5)"></div>
-        <div class="frame" id="frame6" onclick="showCakeInfo(6)"></div>
-        <div class="frame" id="frame7" onclick="showCakeInfo(7)"></div>
-        <div class="frame" id="frame8" onclick="showCakeInfo(8)"></div>
-        <div class="frame" id="frame9" onclick="showCakeInfo(9)"></div>
-        <div class="frame" id="frame10" onclick="showCakeInfo(10)"></div>
-        <div class="frame" id="frame11" onclick="showCakeInfo(11)"></div>
+        <div class="frame" id="frame0" onclick="selectFrame(0)"></div>
+        <div class="frame" id="frame1" onclick="selectFrame(1)"></div>
+        <div class="frame" id="frame2" onclick="selectFrame(2)"></div>
+        <div class="frame" id="frame3" onclick="selectFrame(3)"></div>
+        <div class="frame" id="frame4" onclick="selectFrame(4)"></div>
+        <div class="frame" id="frame5" onclick="selectFrame(5)"></div>
+        <div class="frame" id="frame6" onclick="selectFrame(6)"></div>
+        <div class="frame" id="frame7" onclick="selectFrame(7)"></div>
+        <div class="frame" id="frame8" onclick="selectFrame(8)"></div>
+        <div class="frame" id="frame9" onclick="selectFrame(9)"></div>
+        <div class="frame" id="frame10" onclick="selectFrame(10)"></div>
+        <div class="frame" id="frame11" onclick="selectFrame(11)"></div>
     </div>
 
     <script>
@@ -73,6 +72,7 @@
             'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220
         };
         const cakeSize = 60;
+        let selectedFrame = null;
 
         function drawFrames() {
             frames.forEach((cake, index) => {
@@ -94,24 +94,34 @@
             if (coins >= cakePrice) {
                 coins -= cakePrice;
                 cakePrice += 50; // Increase price for the next purchase
+                const emptyFrameIndex = frames.findIndex(frame => frame === null);
+
+                if (emptyFrameIndex !== -1) {
+                    const randomTexture = cakeTextures[Math.floor(Math.random() * cakeTextures.length)];
+                    const newCake = {
+                        x: 0,
+                        y: 0,
+                        texture: `images/${randomTexture}.png`,
+                        power: cakePower[randomTexture]
+                    };
+
+                    frames[emptyFrameIndex] = newCake;
+                    localStorage.setItem('frames', JSON.stringify(frames));
+                    drawFrames();
+                }
+
                 localStorage.setItem('coins', coins);
                 localStorage.setItem('cakePrice', cakePrice);
                 document.getElementById('price').innerText = cakePrice;
-                updateShop();
             }
         }
 
-        function updateShop() {
-            const randomTexture = cakeTextures[Math.floor(Math.random() * cakeTextures.length)];
-            document.getElementById('availableCakes').innerText = `利用可能: ${randomTexture}`;
-        }
-
-        function showCakeInfo(frameIndex) {
-            const cake = frames[frameIndex];
-            if (cake) {
-                alert(`Frame ${frameIndex}: ${cake.texture} (Power: ${cake.power})`);
-            } else {
-                alert(`Frame ${frameIndex} is empty`);
+        function selectFrame(frameIndex) {
+            if (selectedFrame === null) {
+                selectedFrame = frameIndex;
+            } else if (selectedFrame !== frameIndex) {
+                mergeCakes(selectedFrame, frameIndex);
+                selectedFrame = null;
             }
         }
 
@@ -119,46 +129,27 @@
             const cake1 = frames[frameIndex1];
             const cake2 = frames[frameIndex2];
 
-            if (cake1 && cake2) {
-                alert(`マージする ケーキ の情報:\nFrame ${frameIndex1}: ${cake1.texture} (Power: ${cake1.power})\nFrame ${frameIndex2}: ${cake2.texture} (Power: ${cake2.power})`);
+            if (cake1 && cake2 && cake1.texture === cake2.texture) {
+                const textureIndex = cakeTextures.indexOf(cake1.texture.split('/').pop().split('.')[0]);
+                const nextIndex = textureIndex + 1;
 
-                if (cake1.texture === cake2.texture) {
-                    const textureIndex = cakeTextures.indexOf(cake1.texture.split('/').pop().split('.')[0]);
-                    const nextIndex = textureIndex + 1;
+                if (nextIndex < cakeTextures.length) {
+                    const newTexture = cakeTextures[nextIndex];
+                    frames[frameIndex1] = {
+                        x: (cake1.x + cake2.x) / 2,
+                        y: (cake1.y + cake2.y) / 2,
+                        texture: `images/${newTexture}.png`,
+                        power: cake1.power + cake2.power
+                    };
+                    frames[frameIndex2] = null;
 
-                    if (nextIndex < cakeTextures.length) {
-                        const newTexture = cakeTextures[nextIndex];
-                        const newImage = new Image();
-                        newImage.src = `images/${newTexture}.png`;
-
-                        newImage.onload = () => {
-                            frames[frameIndex1] = {
-                                x: (cake1.x + cake2.x) / 2,
-                                y: (cake1.y + cake2.y) / 2,
-                                image: newImage,
-                                power: cake1.power + cake2.power,
-                                texture: `images/${newTexture}.png`
-                            };
-                            frames[frameIndex2] = null;
-                            localStorage.setItem('frames', JSON.stringify(frames));
-                            drawFrames();
-                        };
-                    } else {
-                        alert('これ以上マージできません');
-                    }
+                    localStorage.setItem('frames', JSON.stringify(frames));
+                    drawFrames();
                 } else {
-                    alert('異なる ケーキ です');
+                    alert('これ以上マージできません');
                 }
             } else {
-                alert('ケーキ が選択されていません');
-            }
-        }
-
-        function deleteCake(frameIndex) {
-            if (frames[frameIndex]) {
-                frames[frameIndex] = null;
-                localStorage.setItem('frames', JSON.stringify(frames));
-                drawFrames();
+                alert('異なるケーキです');
             }
         }
 
@@ -204,9 +195,8 @@
                     frames[emptyFrameIndex] = {
                         x: 0,
                         y: 0,
-                        image: cookieImage,
-                        power: cakePower['cookie'],
-                        texture: 'images/cookie.png'
+                        texture: 'images/cookie.png',
+                        power: cakePower['cookie']
                     };
                     
                     localStorage.setItem('frames', JSON.stringify(frames));
@@ -227,13 +217,10 @@
         }, 1000); // 毎秒コインを更新
 
         drawFrames();
-        updateShop();
         updateCoins();
         updateCoinsPerSecond();
 
         document.getElementById('buyCake').addEventListener('click', buyCake);
-        document.getElementById('mergeCake').addEventListener('click', () => mergeCakes(0, 1)); // Frame 0と1をマージ
-        document.getElementById('deleteCake').addEventListener('click', () => deleteCake(0)); // Frame 0のケーキを削除
         document.getElementById('resetGame').addEventListener('click', resetGame);
     </script>
 </body>
