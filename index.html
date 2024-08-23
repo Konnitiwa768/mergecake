@@ -69,9 +69,21 @@
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         let frames = JSON.parse(localStorage.getItem('frames')) || Array.from({ length: 12 }).map(() => null);
         let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
-        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit'];
+        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit', 'waffle', 'donut', 'cupcake', 'macaron'];
         const cakePower = {
-            'cookie': 1, 'cookie set': 3, 'cake': 12, 'birthday cake': 100, 'pie': 165, 'pancake': 220, 'pancake pro': 468, 'biscuit': 994, 'chocobiscuit': 2048
+            'cookie': 1, 
+            'cookie set': 3, 
+            'cake': 12, 
+            'birthday cake': 100, 
+            'pie': 165, 
+            'pancake': 220, 
+            'pancake pro': 468, 
+            'biscuit': 994, 
+            'chocobiscuit': 2048, 
+            'waffle': 5000,
+            'donut': 11625,
+            'cupcake': 24892,
+            'macaron': 67016
         };
         const cakeSize = 60;
         let selectedFrame = null;
@@ -200,7 +212,6 @@
             if (emptyFrameIndex !== -1) {
                 const cookieImage = new Image();
                 cookieImage.src = 'images/cookie.png';
-
                 cookieImage.onload = () => {
                     frames[emptyFrameIndex] = {
                         x: 0,
