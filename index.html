@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Cakes</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #gameCanvas { border: 1px solid black; }
+        #shop { position: fixed; top: 10px; right: 10px; }
+        #frames { 
+            position: fixed; 
+            bottom: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            flex-wrap: wrap; 
+            width: 780px; 
+            justify-content: center; 
+        }
+        .frame { 
+            border: 1px solid gray; 
+            width: 60px; 
+            height: 60px; 
+            margin: 5px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .frame img { max-width: 100%; max-height: 100%; }
+        button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="shop">
+        <h3>Shop</h3>
+        <button id="buyCake">ケーキを購入（価格: <span id="price">100</span> コイン）</button>
+        <button id="mergeCake">マージ</button>
+        <button id="deleteCake">ケーキ削除</button>
+        <button id="resetGame">リセット</button>
+        <div id="coins">コイン: 0</div>
+        <div id="coinsPerSecond">1秒ごとに: 0 コイン</div>
+        <div id="availableCakes">利用可能: 0</div>
+    </div>
+    <div id="frames">
+        <!-- 12個の枠をHTML内で静的に定義 -->
+        <div class="frame" id="frame0" onclick="showCakeInfo(0)"></div>
+        <div class="frame" id="frame1" onclick="showCakeInfo(1)"></div>
+        <div class="frame" id="frame2" onclick="showCakeInfo(2)"></div>
+        <div class="frame" id="frame3" onclick="showCakeInfo(3)"></div>
+        <div class="frame" id="frame4" onclick="showCakeInfo(4)"></div>
+        <div class="frame" id="frame5" onclick="showCakeInfo(5)"></div>
+        <div class="frame" id="frame6" onclick="showCakeInfo(6)"></div>
+        <div class="frame" id="frame7" onclick="showCakeInfo(7)"></div>
+        <div class="frame" id="frame8" onclick="showCakeInfo(8)"></div>
+        <div class="frame" id="frame9" onclick="showCakeInfo(9)"></div>
+        <div class="frame" id="frame10" onclick="showCakeInfo(10)"></div>
+        <div class="frame" id="frame11" onclick="showCakeInfo(11)"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let frames = JSON.parse(localStorage.getItem('frames')) || Array.from({ length: 12 }).map(() => null);
+        let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
+        const cakeTextures = ['cookie', 'cookie set', 'cake', ' birthday cake', 'pie', 'pancake'];
+        const cakePower = {
+            'cake1': 1, 'cake2': 3, 'cake3': 12, 'cake4': 100, 'cake5': 165, 'cake6': 220
+        };
+        const cakeSize = 60;
+
+        function drawFrames() {
+            frames.forEach((cake, index) => {
+                const frame = document.getElementById(`frame${index}`);
+                if (cake) {
+                    const img = new Image();
+                    img.src = cake.texture;
+                    img.onload = () => {
+                        frame.innerHTML = ''; // Clear previous image
+                        frame.appendChild(img);
+                    };
+                } else {
+                    frame.innerHTML = ''; // Clear frame if empty
+                }
+            });
+        }
+
+        function buyCake() {
+            if (coins >= cakePrice) {
+                coins -= cakePrice;
+                cakePrice += 50; // Increase price for the next purchase
+                localStorage.setItem('coins', coins);
+                localStorage.setItem('cakePrice', cakePrice);
+                document.getElementById('price').innerText = cakePrice;
+                updateShop();
+            }
+        }
+
+        function updateShop() {
+            const randomTexture = cakeTextures[Math.floor(Math.random() * cakeTextures.length)];
+            document.getElementById('availableCakes').innerText = `利用可能: ${randomTexture}`;
+        }
+
+        function showCakeInfo(frameIndex) {
+            const cake = frames[frameIndex];
+            if (cake) {
+                alert(`Frame ${frameIndex}: ${cake.texture} (Power: ${cake.power})`);
+            } else {
+                alert(`Frame ${frameIndex} is empty`);
+            }
+        }
+
+        function mergeCakes(frameIndex1, frameIndex2) {
+            const cake1 = frames[frameIndex1];
+            const cake2 = frames[frameIndex2];
+
+            if (cake1 && cake2) {
+                alert(`マージする ケーキ の情報:\nFrame ${frameIndex1}: ${cake1.texture} (Power: ${cake1.power})\nFrame ${frameIndex2}: ${cake2.texture} (Power: ${cake2.power})`);
+
+                if (cake1.texture === cake2.texture) {
+                    const textureIndex = cakeTextures.indexOf(cake1.texture.split('/').pop().split('.')[0]);
+                    const nextIndex = textureIndex + 1;
+
+                    if (nextIndex < cakeTextures.length) {
+                        const newTexture = cakeTextures[nextIndex];
+                        const newImage = new Image();
+                        newImage.src = `images/${newTexture}.png`;
+
+                        newImage.onload = () => {
+                            frames[frameIndex1] = {
+                                x: (cake1.x + cake2.x) / 2,
+                                y: (cake1.y + cake2.y) / 2,
+                                image: newImage,
+                                power: cake1.power + cake2.power,
+                                texture: `images/${newTexture}.png`
+                            };
+                            frames[frameIndex2] = null;
+                            localStorage.setItem('frames', JSON.stringify(frames));
+                            drawFrames();
+                        };
+                    } else {
+                        alert('これ以上マージできません');
+                    }
+                } else {
+                    alert('異なる ケーキ です');
+                }
+            } else {
+                alert('ケーキ が選択されていません');
+            }
+        }
+
+        function deleteCake(frameIndex) {
+            if (frames[frameIndex]) {
+                frames[frameIndex] = null;
+                localStorage.setItem('frames', JSON.stringify(frames));
+                drawFrames();
+            }
+        }
+
+        function resetGame() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function calculateCoinsPerSecond() {
+            let totalPower = frames.reduce((acc, cake) => acc + (cake ? cake.power : 0), 0);
+            return totalPower;
+        }
+
+        function updateCoins() {
+            document.getElementById('coins').innerText = `コイン: ${formatNumber(coins)}`;
+        }
+
+        function updateCoinsPerSecond() {
+            const cps = calculateCoinsPerSecond();
+            document.getElementById('coinsPerSecond').innerText = `1秒ごとに: ${formatNumber(cps)} コイン`;
+        }
+
+        function formatNumber(num) {
+            const units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
+            let unitIndex = 0;
+
+            while (num >= 1000 && unitIndex < units.length - 1) {
+                num /= 1000;
+                unitIndex++;
+            }
+
+            return `${num.toFixed(2)}${units[unitIndex]}`;
+        }
+
+        document.getElementById('buyCake').addEventListener('click', buyCake);
+        document.getElementById('mergeCake').addEventListener('click', () => {
+            const frameIndex1 = parseInt(prompt('マージする ケーキ のフレーム番号を入力してください (例: 0)'));
+            const frameIndex2 = parseInt(prompt('もう一つの ケーキ のフレーム番号を入力してください (例: 1)'));
+            mergeCakes(frameIndex1, frameIndex2);
+        });
+        document.getElementById('deleteCake').addEventListener('click', () => {
+            const frameIndex = parseInt(prompt('削除する ケーキ のフレーム番号を入力してください (例: 0)'));
+            deleteCake(frameIndex);
+        });
+        document.getElementById('resetGame').addEventListener('click', resetGame);
+
+        drawFrames();
+        updateCoins();
+        updateCoinsPerSecond();
+
+        setInterval(() => {
+            coins += calculateCoinsPerSecond();
+            updateCoins();
+        }, 1000);
+
+        setInterval(updateCoinsPerSecond, 1000);
+    </script>
+</body>
+</html>
