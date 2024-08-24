@@ -69,7 +69,7 @@
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         let frames = JSON.parse(localStorage.getItem('frames')) || Array.from({ length: 12 }).map(() => null);
         let cakePrice = parseInt(localStorage.getItem('cakePrice')) || 100;
-        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit', 'waffle', 'donut', 'cupcake', 'macaron'];
+        const cakeTextures = ['cookie', 'cookie set', 'cake', 'birthday cake', 'pie', 'pancake', 'pancake pro', 'biscuit', 'chocobiscuit', 'waffle', 'donut', 'cupcake', 'macaron', 'churros', 'tart', 'brownie', 'cheesecake', 'gelato'];
         const cakePower = {
             'cookie': 1, 
             'cookie set': 3, 
@@ -83,7 +83,12 @@
             'waffle': 5000,
             'donut': 11625,
             'cupcake': 24892,
-            'macaron': 67016
+            'macaron': 67016,
+            'churros': 145552,
+            'tart': 328976,
+            'brownie': 801522,
+            'cheesecake': 2067345,
+            'gelato': 5112345
         };
         const cakeSize = 60;
         let selectedFrame = null;
@@ -203,12 +208,11 @@
                 unitIndex++;
             }
 
-            return `${num.toFixed(2)}${units[unitIndex]}`;
+            return num.toFixed(1) + units[unitIndex];
         }
 
         function generateCookie() {
             const emptyFrameIndex = frames.findIndex(frame => frame === null);
-            
             if (emptyFrameIndex !== -1) {
                 const cookieImage = new Image();
                 cookieImage.src = 'images/cookie.png';
